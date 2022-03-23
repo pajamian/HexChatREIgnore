@@ -95,7 +95,15 @@ hook_command('REIGNORE', sub {
 	ADD => sub {
 	    my @default = qw(PRIV CHAN NOTI);
 	    my ($mask, $opts, $pattern) = @_;
-	    $mask ||= '*@*!*';
+
+	    # Make sure the pattern compiles as a regex.
+	    if ($pattern && !eval{qr/$pattern/}) {
+		HexChat::printf('Not a valid regex: %s %s', $pattern, $@);
+		return;
+	    }
+
+	    $mask ||= '*!*@*';
+	    $mask .= '!*@*' unless $mask =~ /!/;
 
 	    # Check to see if we have any types other than NOSAVE or QUIET.
 	    # If so we don't use the default types.
@@ -121,6 +129,8 @@ hook_command('REIGNORE', sub {
 	},
 	REMOVE => sub {
 	    my ($mask, $opts, $pattern) = @_;
+	    $mask .= '!*@*' unless $mask =~ /!/;
+
 	    # Loop through and find matching entries
 	    my @optlist = qw(PRIV CHAN NOTI CTCP DCC INVI);
 
@@ -215,7 +225,7 @@ hook_command('REIGNORE', sub {
 	      delete @th{grep {!$th{$_}} keys %th};
 	      HexChat::printf(' %-40s  %-35s  %-50s',
 			      $entry->{mask}, join(' ', sort keys %th),
-			      $entry->{pattern});
+			      $entry->{pattern}||'');
 
 	      $matches++;
 	  } # LIST_LOOP
@@ -329,7 +339,7 @@ hook_server('RAW LINE', sub {
     for my $entry (@ignore_list) {
 	next unless $entry->{$type};
 	next unless match_glob($entry->{mask}, $host);
-	next unless eval { $msg =~ /$entry->{pattern}/ };
+	next if $entry->{pattern} && !eval { $msg =~ /$entry->{pattern}/ };
 	# We have a match, ignore this line.
 	return EAT_ALL;
     }
