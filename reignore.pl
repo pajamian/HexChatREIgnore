@@ -47,7 +47,8 @@ CLEAR - Clear all /reignore entries, functionally equivalent to
 
 mask: hostmask to match for the ignore.
 
-types: One of PRIV, CHAN, NOTI, CTCP, DCC, INVI, ALL
+types: One of PRIV, CHAN, NOTI, CTCP, DCC, INVI, ALL (currently DCC and INVI are
+	not implemented)
 
 options: NOSAVE, QUIET.
 
