@@ -29,8 +29,12 @@ my $scriptname = 'REIgnore';
 my $version = '0.2';
 my $description = 'hexchat plugin which allows regex /ignore patterns';
 
-my $help_text = <<'EOH';
-synopsis: /REIGNORE [ADD|REMOVE|LIST|CLEAR] <mask> <types> <options> <pattern>
+my $help_text = <<EOH;
+$scriptname version $version
+
+$description
+
+Synopsis: /REIGNORE [ADD|REMOVE|LIST|CLEAR] <mask> <types> <options> <pattern>
 
 ADD - Add a new /reignore entry. This is the default action.
 
@@ -349,8 +353,8 @@ hook_server('RAW LINE', sub {
 });
 
 register($scriptname, $version, $description, sub {
-    HexChat::print("$scriptname Unloaded.");
+    HexChat::print("$scriptname unloaded.");
 });
 load_ignore_list();
 
-HexChat::print("$scriptname Loaded.");
+HexChat::print("$scriptname version $version loaded.");
