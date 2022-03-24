@@ -1,12 +1,25 @@
-synopsis: /REIGNORE [ADD|REMOVE|LIST|CLEAR] <mask> <types> <options> <pattern>
+REIgnore
+
+A HexChat plugin which allows regex /ignore patterns
+
+Synopsis: /REIGNORE [ADD|REMOVE|LIST|CLEAR] <mask> <types> <options> <pattern>
+
 ADD - Add a new /reignore entry. This is the default action.
+
 REMOVE - REMOVE a matching /reignore entry.
+
 LIST - List all matching /reignore entries.
+
 CLEAR - Clear all /reignore entries, functionally equivalent to
 	`/reignore REMOVE *!*@*`
+
 mask: hostmask to match for the ignore.
+
 types: One of PRIV, CHAN, NOTI, CTCP, DCC, INVI, ALL
+
 options: NOSAVE, QUIET.
+
 pattern: A regular expression pattern that must be matched for a message to be
 	ignored.
+
 This plugin requires: perl, JSON, Text::Glob

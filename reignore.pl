@@ -27,7 +27,7 @@ $Text::Glob::strict_wildcard_slash = 0;
 
 my $scriptname = 'REIgnore';
 my $version = '0.2';
-my $description = 'hexchat plugin which allows regex /ignore patterns';
+my $description = 'A HexChat plugin which allows regex /ignore patterns';
 
 my $help_text = <<EOH;
 $scriptname version $version
