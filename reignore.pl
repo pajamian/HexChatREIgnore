@@ -344,7 +344,10 @@ hook_server('RAW LINE', sub {
     for my $entry (@ignore_list) {
 	next unless $entry->{$type};
 	next unless match_glob($entry->{mask}, $host);
-	next if $entry->{pattern} && !eval { $msg =~ /$entry->{pattern}/ };
+	next if $entry->{pattern} && !eval {
+	    no re 'eval';
+	    $msg =~ /$entry->{pattern}/;
+	};
 	# We have a match, ignore this line.
 	return EAT_ALL;
     }
