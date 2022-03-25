@@ -102,7 +102,10 @@ hook_command('REIGNORE', sub {
 	    my ($mask, $opts, $pattern) = @_;
 
 	    # Make sure the pattern compiles as a regex.
-	    if ($pattern && !eval{qr/$pattern/}) {
+	    if ($pattern && !eval{
+		no re 'eval';
+		qr/$pattern/;
+		}) {
 		HexChat::printf('Not a valid regex: %s %s', $pattern, $@);
 		return;
 	    }
