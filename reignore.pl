@@ -18,15 +18,16 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
 # USA.
 #
+use 5.010_000;
 use strict;
 use warnings;
-use HexChat qw(:constants :hooks register get_info strip_code);
+use HexChat qw(:constants :hooks register get_info strip_code user_info);
 use JSON qw(to_json from_json);
 use Text::Glob qw(match_glob);
 $Text::Glob::strict_wildcard_slash = 0;
 
 my $scriptname = 'REIgnore';
-my $version = '0.2';
+my $version = '0.3';
 my $description = 'A HexChat plugin which allows regex /ignore patterns';
 
 my $help_text = <<EOH;
@@ -43,9 +44,11 @@ REMOVE - REMOVE a matching /reignore entry.
 LIST - List all matching /reignore entries.
 
 CLEAR - Clear all /reignore entries, functionally equivalent to
-	`/reignore REMOVE *!*@*`
+	`/reignore REMOVE *!*\@*`
 
-mask: hostmask to match for the ignore.
+mask: Hostmask to match for the ignore.  This accepts wildcards * and ? and will
+	match against nick!ident\@host.  There are also extban-style matches that
+	work here (see below).
 
 types: One of PRIV, CHAN, NOTI, CTCP, DCC, INVI, ALL (currently DCC and INVI are
 	not implemented)
@@ -55,8 +58,42 @@ options: NOSAVE, QUIET.
 pattern: A regular expression pattern that must be matched for a message to be
 	ignored.
 
+
+Extban-style matches - The following masks are also possible:
+
+\$a: Matches a logged in account name.
+
+\$h: Matches the user's hostname in the form user\@host.
+
+\$n: Matches the user's nickname.
+
+\$p: Matches any prefix such as \@ or +.
+
+\$r: Matches the user's real name.
+
+\$x: Matches the full user!ident\@hostname#gecos for the user.
+
+If you follow the \$ with a ~ character it reverses the sense of the match.
+Examples:
+
+Match the username "pj":
+\$a:pj
+
+Match any user who is not a channel op:
+\$~:\@
+
+Match any user who does not have ops or voice in the channel:
+\$~p:?
+
+Match anyone with the real name of "Joe Bloggs":
+\$r:Joe Bloggs
+
+Match any user who is not logged in:
+\$a:
+
 This plugin requires: perl, JSON, Text::Glob
 EOH
+#'
 
 # Memory storage of the ignore list
 my $ignore_path = get_info('configdir') . '/reignore.json';
@@ -111,7 +148,7 @@ hook_command('REIGNORE', sub {
 	    }
 
 	    $mask ||= '*!*@*';
-	    $mask .= '!*@*' unless $mask =~ /!/;
+	    $mask .= '!*@*' unless $mask =~ /(?:^\$[ahnprx]:)|!/;
 
 	    # Check to see if we have any types other than NOSAVE or QUIET.
 	    # If so we don't use the default types.
@@ -137,7 +174,7 @@ hook_command('REIGNORE', sub {
 	},
 	REMOVE => sub {
 	    my ($mask, $opts, $pattern) = @_;
-	    $mask .= '!*@*' unless $mask =~ /!/;
+	    $mask .= '!*@*' unless $mask =~ /(?:^\$[ahnprx]:)|!/;
 
 	    # Loop through and find matching entries
 	    my @optlist = qw(PRIV CHAN NOTI CTCP DCC INVI);
@@ -308,6 +345,17 @@ hook_server('RAW LINE', sub {
     my ($type,$msg);
     my $host = $args->[0];
     $host =~ s/^://;
+    my $rnick = $host;
+    $rnick =~ s/!.*//;
+    my %info;
+    {
+	my $i = user_info($rnick);
+	@info{qw(a h n p r)} = @{$i}{qw(account host nick prefix realname)};
+	for (values %info) {
+	    $_ //= '';
+	}
+	$info{x} = "$host#$info{r}";
+    }
 
     # Determine the type of message
     if ($args->[1] eq 'PRIVMSG') {
@@ -346,7 +394,16 @@ hook_server('RAW LINE', sub {
     # See if this matches any filters.
     for my $entry (@ignore_list) {
 	next unless $entry->{$type};
-	next unless match_glob($entry->{mask}, $host);
+	my $mask = $entry->{mask};
+	my $revmatch;
+	my $match = $host;
+	if ($mask =~ s/^\$(~?)([ahnprx])://) {
+	    $revmatch = $1;
+	    $match = $info{$2};
+	}
+	my $matched = match_glob($entry->{mask}, $match);
+	$matched = ! $matched if $revmatch;
+	next unless $matched;
 	next if $entry->{pattern} && !eval {
 	    no re 'eval';
 	    $msg =~ /$entry->{pattern}/;
