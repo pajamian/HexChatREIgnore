@@ -27,7 +27,7 @@ use Text::Glob qw(match_glob);
 $Text::Glob::strict_wildcard_slash = 0;
 
 my $scriptname = 'REIgnore';
-my $version = '0.3';
+my $version = '0.4';
 my $description = 'A HexChat plugin which allows regex /ignore patterns';
 
 my $help_text = <<EOH;
@@ -401,7 +401,7 @@ hook_server('RAW LINE', sub {
 	    $revmatch = $1;
 	    $match = $info{$2};
 	}
-	my $matched = match_glob($entry->{mask}, $match);
+	my $matched = match_glob($mask, $match);
 	$matched = ! $matched if $revmatch;
 	next unless $matched;
 	next if $entry->{pattern} && !eval {
