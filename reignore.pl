@@ -22,12 +22,25 @@ use 5.010_000;
 use strict;
 use warnings;
 use HexChat qw(:constants :hooks register get_info strip_code user_info);
-use JSON qw(to_json from_json);
 use Text::Glob qw(match_glob);
 $Text::Glob::strict_wildcard_slash = 0;
 
+# We want to allow JSON::PP for Windows users who find it difficult to install
+# JSON.
+BEGIN {
+    eval {
+	require JSON;
+	JSON->import(qw(to_json from_json));
+    };
+    eval {
+	require JSON::PP;
+	JSON::PP->import(qw(to_json from_json));
+    } if $@;
+    die $@ if $@;
+}
+
 my $scriptname = 'REIgnore';
-my $version = '0.4';
+my $version = '0.5';
 my $description = 'A HexChat plugin which allows regex /ignore patterns';
 
 my $help_text = <<EOH;
