@@ -1,8 +1,10 @@
 REIgnore
+============
 
-A HexChat plugin which allows regex /ignore patterns
+A HexChat and ZoiteChat plugin which allows regex /ignore patterns
 
-Synopsis: /REIGNORE [ADD|REMOVE|LIST|CLEAR] <mask> <types> <options> <pattern>
+## Synopsis
+/REIGNORE [ADD|REMOVE|LIST|CLEAR] <mask> <types> <options> <pattern>
 
 ADD - Add a new /reignore entry. This is the default action.
 
@@ -56,5 +58,7 @@ $r:Joe Bloggs
 
 Match any user who is not logged in:
 $a:
+
+## Requirements
 
 This plugin requires: perl, JSON (or JSON::PP), Text::Glob
