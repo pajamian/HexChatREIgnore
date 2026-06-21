@@ -57,4 +57,4 @@ $r:Joe Bloggs
 Match any user who is not logged in:
 $a:
 
-This plugin requires: perl, JSON, Text::Glob
+This plugin requires: perl, JSON (or JSON::PP), Text::Glob
